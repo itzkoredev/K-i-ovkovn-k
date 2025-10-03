@@ -1,139 +1,230 @@
-# Křižovkovník
+# 🧩 Křižovkovník - Generátor Klasických Českých Křížovek
 
-![Křižovkovník](https://img.shields.io/badge/Next.js-14-black)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
-![License](https://img.shields.io/badge/license-MIT-green)
+[![Next.js](https://img.shields.io/badge/Next.js-14.2.5-black)](https://nextjs.org/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)](https://www.typescriptlang.org/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8)](https://tailwindcss.com/)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-**Křižovkovník** je moderní webová aplikace pro generování klasických českých křížovek s možností exportu do PDF formátu připraveného k tisku na formát A4.
+> Moderní webová aplikace pro generování klasických českých křížovek s tajenkou, nápovědami a exportem do PDF.
 
-## ✨ Funkce
+## ✨ Hlavní Funkce
 
-- 🎯 **Generování křížovek** - Automatické vytváření křížovek podle vašich preferencí
-- 📊 **Volba obtížnosti** - Lehká, střední nebo těžká obtížnost
-- 🎨 **Různá témata** - Příroda, sport, kultura, věda, geografie, historie, jídlo, zvířata, technika
-- ⚙️ **Customizace** - Nastavení velikosti mřížky (10×10 až 25×25)
-- 📝 **Počet slov** - Volba od 5 do 50 slov
-- 📄 **PDF Export** - Profesionální export do PDF formátu A4
-- ✅ **Řešení** - Volitelné zahrnutí řešení v PDF
-- 🇨🇿 **Česká lokalizace** - Plně v češtině s českými slovy
+### 🎯 Tajenka
+- **Žlutá políčka** označují písmena, která tvoří tajné slovo
+- Po vyluštění křížovky vytvoří tajenka smysluplné heslo
+- Náhodný výběr z hesel: ČESKO, PRAHA, ZÁBAVA, ÚSPĚCH, RADOST, VÍTĚZ, ŠTĚSTÍ
 
-## 🚀 Rychlý start
+### 💡 Nápovědy
+- **Zelené písmenko** v pravém horním rohu některých políček
+- Pomáhá při řešení obtížnějších částí
+- Cca 10% políček dostane nápovědu
+
+### 🔢 Klasický Formát
+- **Čísla otázek** v levém horním rohu bílých políček (modrá barva)
+- **Černá políčka** jsou prázdná (bez textu otázek)
+- **Seznam otázek** pod mřížkou (Vodorovně → a Svisle ↓)
+- **Krátké otázky** - úsporné formulace jako v novinách
+
+### 📄 PDF Export
+- **Stránka 1**: Mřížka s tajenkou (prázdná křížovka)
+- **Stránka 2**: Seznam otázek + tajenka ve žlutém rámečku
+- **Stránka 3**: Řešení (volitelné)
+- A4 formát optimalizovaný pro tisk
+- České fonty s perfektní diakritikou
+
+### 🎨 Moderní Design
+- **Větší políčka** - až 50px pro lepší čitelnost
+- **Barevné zvýraznění** - tajenka (žlutá), nápovědy (zelená), čísla (modrá)
+- **Framer Motion animace** - plynulé přechody a efekty
+- **Responzivní layout** - funguje na desktop i tablet
+- **Gradientní pozadí** a moderní UI komponenty
+
+### 🎮 Multi-Select Témat
+- Vyberte **až 5 témat** současně
+- Badge rozhraní s odstraňováním křížkem
+- 25+ témat k výběru
+
+## 🚀 Rychlý Start
 
 ### Předpoklady
-
-- Node.js 18+ 
-- npm nebo yarn
+- Node.js 18.0 nebo vyšší
+- npm, yarn nebo pnpm
 
 ### Instalace
 
-1. Naklonujte repozitář:
 ```bash
-git clone https://github.com/your-username/krizovkovnik.git
+# Klonování repozitáře
+git clone https://github.com/YOUR_USERNAME/krizovkovnik.git
 cd krizovkovnik
-```
 
-2. Nainstalujte závislosti:
-```bash
+# Instalace závislostí
 npm install
-```
 
-3. Spusťte vývojový server:
-```bash
+# Spuštění vývojového serveru
 npm run dev
 ```
 
-4. Otevřete prohlížeč na adrese [http://localhost:3000](http://localhost:3000)
+Otevřete [http://localhost:3000](http://localhost:3000) v prohlížeči.
 
-## 📦 Build pro produkci
+### Build pro produkci
 
 ```bash
 npm run build
 npm start
 ```
 
+## 📖 Použití
+
+1. **Vyberte témata** - až 5 témat najednou (Příroda, Sport, Kultura, atd.)
+2. **Nastavte obtížnost** - Lehká, Střední, Těžká
+3. **Zvolte velikost** - 10×10 až 25×25 políček
+4. **Počet slov** - kolik slov chcete v křížovce (5-50)
+5. **Řešení** - zapněte pro zobrazení řešení v PDF
+6. **Generovat** - klikněte na tlačítko "Vygenerovat křížovku"
+7. **Export** - stáhněte si PDF soubor
+
+## 📊 Databáze Slov
+
+- **300+ českých slov** s krátkými otázkami
+- **25+ témat**: Příroda, Sport, Kultura, Věda, Geografie, Historie, Jídlo, Zvířata, Technika, Hudba, Film, Divadlo, Umění, Literatura, Náboženství, Politika, Ekonomie, Medicína, Astronomie, Doprava, Cestování, Móda, Architektura, Zahradnictví
+- **3 úrovně obtížnosti**: Lehká, Střední, Těžká
+- **Krátké formulace** otázek (2-4 slova) jako v klasických novinových křížovkách
+
 ## 🛠️ Technologie
 
-- **Next.js 14** - React framework s App Router
-- **TypeScript** - Type-safe JavaScript
-- **Tailwind CSS** - Utility-first CSS framework
-- **Shadcn/UI** - Kvalitní React komponenty
-- **jsPDF** - PDF generování
-- **Radix UI** - Headless UI primitives
-- **Lucide React** - Moderní ikony
+- **Framework**: [Next.js 14.2.5](https://nextjs.org/) - React framework s App Router
+- **Jazyk**: [TypeScript](https://www.typescriptlang.org/) - Type-safe JavaScript
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) - Utility-first CSS framework
+- **Animace**: [Framer Motion](https://www.framer.com/motion/) - Production-ready animace
+- **PDF**: [jsPDF](https://github.com/parallax/jsPDF) + jsPDF-AutoTable - Generování PDF
+- **UI**: [shadcn/ui](https://ui.shadcn.com/) - Re-usable komponenty
+- **Icons**: [Lucide React](https://lucide.dev/) - Krásné ikony
 
-## 📁 Struktura projektu
+## 📁 Struktura Projektu
 
 ```
-krizovkovnik/
-├── app/                    # Next.js App Router
-│   ├── layout.tsx         # Root layout
-│   ├── page.tsx           # Hlavní stránka
-│   └── globals.css        # Globální styly
-├── components/            # React komponenty
-│   ├── ui/               # Shadcn/UI komponenty
-│   ├── crossword-grid.tsx
-│   ├── crossword-clues.tsx
-│   └── settings-form.tsx
-├── lib/                   # Utility funkce
-│   ├── crossword-generator.ts  # Algoritmus generování
+křižovkovník/
+├── app/
+│   ├── page.tsx              # Hlavní stránka
+│   ├── layout.tsx            # Root layout
+│   ├── globals.css           # Globální styly
+│   └── favicon.svg           # Favicon
+├── components/
+│   ├── crossword-grid.tsx         # Komponenta mřížky
+│   ├── crossword-clues-list.tsx   # Seznam otázek
+│   ├── settings-form.tsx          # Formulář nastavení
+│   └── ui/                        # Reusable UI komponenty
+│       ├── badge.tsx
+│       ├── button.tsx
+│       ├── card.tsx
+│       ├── input.tsx
+│       ├── label.tsx
+│       ├── select.tsx
+│       ├── slider.tsx
+│       └── switch.tsx
+├── lib/
+│   ├── crossword-generator.ts # Generátor křížovek
 │   ├── pdf-export.ts          # PDF export
-│   └── utils.ts              # Pomocné funkce
-├── types/                # TypeScript typy
-│   └── crossword.ts
-├── data/                 # Data
-│   └── czech-words.ts    # Databáze českých slov
-└── public/              # Statické soubory
+│   └── utils.ts               # Utility funkce
+├── data/
+│   └── czech-words.ts         # Databáze 300+ slov
+├── types/
+│   └── crossword.ts           # TypeScript typy
+└── docs/
+    ├── KLASICKE_KRIZOVKY.md   # Průvodce klasickým formátem
+    ├── MULTI_SELECT_DOCUMENTATION.md
+    ├── DOCUMENTATION.md        # Technická dokumentace
+    └── CHANGELOG.md            # Historie změn
 ```
 
-## 🎮 Použití
+## 🎯 Algoritmus Generování
 
-1. **Nastavte parametry** - Vyberte obtížnost, téma, velikost mřížky a počet slov
-2. **Vygenerujte křížovku** - Klikněte na "Vygenerovat křížovku"
-3. **Prohlédněte si náhled** - Zkontrolujte vygenerovanou křížovku
-4. **Exportujte do PDF** - Stáhněte si PDF připravené k tisku
+1. **Výběr slov** - náhodný výběr podle vybraných témat a obtížnosti
+2. **Umístění prvního slova** - horizontálně uprostřed mřížky
+3. **Hledání průsečíků** - inteligentní algoritmus hledá společná písmena
+4. **Kontrola kolizí** - validace že slova nemají nežádoucí sousední buňky
+5. **Generování tajenky** - náhodný výběr políček, která tvoří tajné slovo
+6. **Přidání nápověd** - 10% náhodných políček dostane nápovědu (první písmeno)
+7. **Čísování** - automatické přiřazení čísel otázkám podle pozice
 
-## 🧩 Algoritmus generování
+## 📝 Dokumentace
 
-Křížovka se generuje pomocí pokročilého algoritmu:
+- [KLASICKE_KRIZOVKY.md](KLASICKE_KRIZOVKY.md) - Kompletní průvodce klasickým formátem
+- [MULTI_SELECT_DOCUMENTATION.md](MULTI_SELECT_DOCUMENTATION.md) - Multi-select témat
+- [DOCUMENTATION.md](DOCUMENTATION.md) - Technická dokumentace
+- [QUICK_GUIDE.md](QUICK_GUIDE.md) - Rychlý průvodce
+- [CHANGELOG.md](CHANGELOG.md) - Historie změn
 
-1. **Výběr slov** - Slova jsou vybrána podle obtížnosti a tématu
-2. **Umístění** - První slovo se umístí do středu horizontálně
-3. **Průsečíky** - Další slova se přidávají pomocí hledání společných písmen
-4. **Optimalizace** - Algoritmus se snaží maximalizovat počet slov a průsečíků
+## 🎨 Ukázky
 
-## 📝 Databáze slov
+### Mřížka s tajenkou a nápovědami
+- Žlutá políčka = tajenka
+- Zelená písmena = nápovědy
+- Modrá čísla = odkazy na otázky
+- Černá prázdná políčka
 
-Aplikace obsahuje rozsáhlou databázi českých slov s:
-- Více než 100 slov
-- Kategorizace podle témat
-- Rozdělení podle obtížnosti
-- Kvalitní nápovědy
+### Seznam otázek
+- Vodorovně → (modrá sekce)
+- Svisle ↓ (fialová sekce)
+- Krátké, úsporné formulace
+- Číslo délky slova v závorce
+
+### PDF Export
+- Stránka 1: Prázdná křížovka
+- Stránka 2: Otázky + tajenka
+- Stránka 3: Vyplněné řešení
+- Profesionální layout, české fonty
 
 ## 🤝 Přispívání
 
 Příspěvky jsou vítány! Pokud chcete přispět:
 
-1. Forkněte projekt
+1. Forkněte repozitář
 2. Vytvořte feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commitněte změny (`git commit -m 'Add some AmazingFeature'`)
-4. Pushněte do branch (`git push origin feature/AmazingFeature`)
+3. Commitujte změny (`git commit -m '✨ Add amazing feature'`)
+4. Pushněte do branche (`git push origin feature/AmazingFeature`)
 5. Otevřete Pull Request
+
+### Nápady na příspěvky
+- 🆕 Přidání nových slov do databáze
+- 🎨 Nová témata křížovek
+- 🐛 Opravy bugů
+- 📖 Vylepšení dokumentace
+- ✨ Nové funkce (např. vlastní tajenka, více typů nápověd)
 
 ## 📄 Licence
 
-Tento projekt je licencován pod MIT licencí.
+Tento projekt je licencován pod MIT licencí - viz [LICENSE](LICENSE) soubor.
 
-## 👨‍💻 Autor
+## 👤 Autor
 
-Vytvořeno s ❤️ pro milovníky křížovek
+GitHub: [@YOUR_USERNAME](https://github.com/YOUR_USERNAME)
+
+## 🎉 Plánované Funkce
+
+- [ ] Vlastní zadání tajenky uživatelem
+- [ ] Více tajenek v jedné křížovce
+- [ ] Různé typy nápověd (synonyma, definice, obrázky)
+- [ ] Tématické tajenky (podle vybraných témat)
+- [ ] Local storage pro ukládání křížovek
+- [ ] Sdílení křížovek přes URL
+- [ ] Tisk přímo z prohlížeče (bez PDF)
+- [ ] Dark mode
+- [ ] Mobilní aplikace (React Native)
+- [ ] API pro externí integrace
+
+## 💖 Podpora
+
+Pokud se vám projekt líbí, dejte mu ⭐ na GitHubu!
+
+Chcete podpořit vývoj? [Buy me a coffee](https://www.buymeacoffee.com/YOUR_USERNAME) ☕
 
 ## 🙏 Poděkování
 
-- Shadcn pro úžasné UI komponenty
-- Radix UI team
-- Next.js team
-- Všem přispěvatelům
+- Inspirováno klasickými českými novinovými křížovkami
+- Děkuji komunitě Next.js a React za skvělé nástroje
+- shadcn/ui za krásné UI komponenty
 
 ---
 
-**Bavte se s generováním křížovek! 🎉**
+**Vytvořeno s ❤️ pro milovníky českých křížovek**
