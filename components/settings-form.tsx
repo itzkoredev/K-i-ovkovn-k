@@ -6,7 +6,6 @@ import type { CrosswordSettings, Difficulty, Theme } from '@/types/crossword';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,10 +51,8 @@ const themes: { value: Theme; label: string; emoji: string }[] = [
 ];
 
 export function SettingsForm({ onGenerate, isGenerating = false }: SettingsFormProps) {
-  const [gridSize, setGridSize] = useState(15);
   const [difficulty, setDifficulty] = useState<Difficulty>('lehka');
   const [selectedThemes, setSelectedThemes] = useState<Theme[]>(['vsechny']);
-  const [wordCount, setWordCount] = useState(20);
   const [showSolution, setShowSolution] = useState(false);
 
   const MAX_THEMES = 5;
@@ -98,10 +95,8 @@ export function SettingsForm({ onGenerate, isGenerating = false }: SettingsFormP
 
   const handleGenerate = () => {
     const settings: CrosswordSettings = {
-      gridSize,
       difficulty,
       themes: selectedThemes,
-      wordCount,
       showSolution,
     };
     onGenerate(settings);
@@ -112,10 +107,17 @@ export function SettingsForm({ onGenerate, isGenerating = false }: SettingsFormP
       <CardHeader>
         <CardTitle>Nastavení křížovky</CardTitle>
         <CardDescription>
-          Přizpůsobte si křížovku podle svých potřeb
+          Vyberte parametry pro pevnou švédskou šablonu s tajenkou
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <div className="rounded-lg border border-yellow-300 bg-yellow-50 p-3 text-sm text-yellow-900 shadow-sm">
+          <p className="font-medium">Švédská šablona 10 × 10</p>
+          <p>
+            Mřížka odpovídá referenčnímu švédskému vzoru: zadání jsou v žlutých políčkách,
+            tajenka probíhá ve dvou sloupcích a počet slov je daný šablonou.
+          </p>
+        </div>
         <div className="space-y-2">
           <Label htmlFor="difficulty">Obtížnost</Label>
           <Select value={difficulty} onValueChange={(value) => setDifficulty(value as Difficulty)}>
@@ -227,36 +229,6 @@ export function SettingsForm({ onGenerate, isGenerating = false }: SettingsFormP
               Dosažen limit {MAX_THEMES} témat. Odeberte téma pro přidání nového.
             </p>
           )}
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label htmlFor="gridSize">Velikost mřížky</Label>
-            <span className="text-sm text-muted-foreground">{gridSize} × {gridSize}</span>
-          </div>
-          <Slider
-            id="gridSize"
-            min={10}
-            max={25}
-            step={1}
-            value={[gridSize]}
-            onValueChange={(value) => setGridSize(value[0])}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <div className="flex justify-between">
-            <Label htmlFor="wordCount">Počet slov</Label>
-            <span className="text-sm text-muted-foreground">{wordCount} slov</span>
-          </div>
-          <Slider
-            id="wordCount"
-            min={5}
-            max={50}
-            step={1}
-            value={[wordCount]}
-            onValueChange={(value) => setWordCount(value[0])}
-          />
         </div>
 
         <div className="flex items-center justify-between">

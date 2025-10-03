@@ -38,11 +38,11 @@ export interface Word {
 }
 
 export interface CrosswordSettings {
-  gridSize: number;
   difficulty: Difficulty;
   themes: Theme[]; // Změněno z theme na themes (pole)
-  wordCount: number;
   showSolution: boolean;
+  gridSize?: number;
+  wordCount?: number;
 }
 
 export interface GridCell {
@@ -50,7 +50,11 @@ export interface GridCell {
   number?: number;
   isBlack: boolean;
   isTajenka?: boolean; // Políčko je součástí tajenky
-  napoveda?: string; // Nápověda v pravém horním rohu (jedno písmeno)
+  pomucka?: string; // Pomůcka - první písmeno předvyplněné (zelené)
+  clueText?: string; // Text zadání v černém políčku (pro švédskou křížovku)
+  clueDirection?: 'horizontal' | 'vertical' | 'both'; // Směr odpovědi (vpravo, dolů, nebo obojí)
+  clueTextHorizontal?: string; // Pro both - horní text (vodorovně vpravo)
+  clueTextVertical?: string; // Pro both - dolní text (svisle dolů)
   x: number;
   y: number;
 }

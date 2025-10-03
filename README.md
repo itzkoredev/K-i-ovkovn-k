@@ -102,7 +102,7 @@ npm start
 
 ## 📁 Struktura Projektu
 
-```
+```text
 křižovkovník/
 ├── app/
 │   ├── page.tsx              # Hlavní stránka
@@ -158,18 +158,21 @@ křižovkovník/
 ## 🎨 Ukázky
 
 ### Mřížka s tajenkou a nápovědami
+
 - Žlutá políčka = tajenka
 - Zelená písmena = nápovědy
 - Modrá čísla = odkazy na otázky
 - Černá prázdná políčka
 
 ### Seznam otázek
+
 - Vodorovně → (modrá sekce)
 - Svisle ↓ (fialová sekce)
 - Krátké, úsporné formulace
 - Číslo délky slova v závorce
 
 ### PDF Export
+
 - Stránka 1: Prázdná křížovka
 - Stránka 2: Otázky + tajenka
 - Stránka 3: Vyplněné řešení
@@ -186,6 +189,7 @@ Příspěvky jsou vítány! Pokud chcete přispět:
 5. Otevřete Pull Request
 
 ### Nápady na příspěvky
+
 - 🆕 Přidání nových slov do databáze
 - 🎨 Nová témata křížovek
 - 🐛 Opravy bugů
@@ -227,4 +231,4 @@ Chcete podpořit vývoj? [Buy me a coffee](https://www.buymeacoffee.com/YOUR_USE
 
 ---
 
-**Vytvořeno s ❤️ pro milovníky českých křížovek**
+### ❤️ Vytvořeno pro milovníky českých křížovek

@@ -7,7 +7,6 @@ import { generateCrossword } from '@/lib/crossword-generator';
 import { exportToPDF } from '@/lib/pdf-export';
 import { SettingsForm } from '@/components/settings-form';
 import { CrosswordGrid } from '@/components/crossword-grid';
-import { CrosswordCluesList } from '@/components/crossword-clues-list';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, RefreshCw, Sparkles, Loader2 } from 'lucide-react';
@@ -192,26 +191,17 @@ export default function HomePage() {
                       <CardHeader>
                         <CardTitle>Křížovka</CardTitle>
                         <CardDescription>
-                          Klasická česká křížovka s tajenkou
+                          Švédská křížovka - zadání jsou přímo v černých políčkách
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex flex-col items-center overflow-x-auto">
                         <CrosswordGrid 
                           grid={crossword.grid} 
                           showSolution={false}
-                          tajenka={crossword.settings.showSolution ? undefined : crossword.tajenka}
+                          tajenka={crossword.tajenka}
                         />
                       </CardContent>
                     </Card>
-                  </motion.div>
-
-                  {/* Seznam otázek */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.2, duration: 0.3 }}
-                  >
-                    <CrosswordCluesList words={crossword.words} />
                   </motion.div>
 
                   {crossword.settings.showSolution && (
