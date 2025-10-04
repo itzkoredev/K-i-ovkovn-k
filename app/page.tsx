@@ -3,10 +3,10 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Crossword, CrosswordSettings } from '@/types/crossword';
-import { generateCrossword } from '@/lib/crossword-generator';
+import { generateCrossword } from '@/lib';
 import { exportToPDF } from '@/lib/pdf-export';
 import { SettingsForm } from '@/components/settings-form';
-import { CrosswordGrid } from '@/components/crossword-grid';
+import { ClassicCrosswordGrid } from '@/components/classic-crossword-grid';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Download, RefreshCw, Sparkles, Loader2 } from 'lucide-react';
@@ -15,19 +15,18 @@ export default function HomePage() {
   const [crossword, setCrossword] = useState<Crossword | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerate = async (settings: CrosswordSettings) => {
-    setIsGenerating(true);
-    
+  const handleGenerate = (settings: CrosswordSettings) => {
     try {
-      // Malé zpoždění pro lepší UX
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const newCrossword = generateCrossword(settings);
-      setCrossword(newCrossword);
+      setIsGenerating(true);
+      setTimeout(() => {
+        console.log('🎯 Začínám generovat křížovku s nastaveními:', settings);
+        const newCrossword = generateCrossword(settings);
+        console.log('✅ Křížovka vygenerována:', newCrossword);
+        setCrossword(newCrossword);
+        setIsGenerating(false);
+      }, 100);
     } catch (error) {
-      console.error('Chyba při generování křížovky:', error);
-      alert('Nepodařilo se vygenerovat křížovku. Zkuste prosím jiné nastavení.');
-    } finally {
+      console.error('❌ Chyba při generování křížovky:', error);
       setIsGenerating(false);
     }
   };
@@ -195,8 +194,9 @@ export default function HomePage() {
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex flex-col items-center overflow-x-auto">
-                        <CrosswordGrid 
-                          grid={crossword.grid} 
+                        <ClassicCrosswordGrid 
+                          grid={crossword.grid}
+                          clues={crossword.words}
                           showSolution={false}
                           tajenka={crossword.tajenka}
                         />
@@ -218,8 +218,9 @@ export default function HomePage() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center overflow-x-auto">
-                          <CrosswordGrid 
-                            grid={crossword.grid} 
+                          <ClassicCrosswordGrid 
+                            grid={crossword.grid}
+                            clues={crossword.words}
                             showSolution={true}
                             tajenka={crossword.tajenka}
                           />

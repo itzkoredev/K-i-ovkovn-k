@@ -12,11 +12,11 @@ interface CrosswordGridProps {
 }
 
 export function CrosswordGrid({ grid, showSolution = false, className, tajenka }: CrosswordGridProps) {
-  // Swedish crosswords - smaller cells for large grid
-  const cellSize = 28; // Smaller for 17x25 grid
-  const fontSize = cellSize * 0.6; // ~17px for letters
-  const clueSize = 5.5; // Very small clues to fit
-  const numberSize = 7;
+  // A4 FORMAT: Větší buňky pro lepší čitelnost
+  const cellSize = 42; // ZVĚTŠENO z 38px - větší prostor pro zadání
+  const fontSize = cellSize * 0.52; // ~22px pro písmena
+  const clueSize = 5.5; // ZVĚTŠENO z 4.75px na požadavek uživatele
+  const numberSize = 9;
   const pomuckaSize = cellSize * 0.45;
   
   const rows = grid.length;
@@ -42,9 +42,9 @@ export function CrosswordGrid({ grid, showSolution = false, className, tajenka }
               <motion.div
                 key={`${x}-${y}`}
                 className={cn(
-                  "relative border border-gray-700 flex items-start justify-start p-0.5 transition-all duration-200",
+                  "relative border border-gray-800 flex items-start justify-start p-0.5 transition-all duration-200",
                   cell.isBlack 
-                    ? "bg-purple-100" 
+                    ? "bg-purple-200" 
                     : cell.isTajenka 
                       ? "bg-blue-200 hover:bg-blue-300"
                       : "bg-white hover:bg-blue-50"
@@ -74,28 +74,34 @@ export function CrosswordGrid({ grid, showSolution = false, className, tajenka }
 
                     if (cell.clueDirection === 'both') {
                       return (
-                        <div className="w-full h-full flex flex-col text-left leading-none gap-px p-px">
+                        <div className="w-full h-full flex flex-col text-left leading-none gap-px p-0.5">
                           <div 
-                            className="text-gray-900 font-medium uppercase overflow-hidden"
+                            className="text-gray-950 font-semibold uppercase overflow-hidden"
                             style={{ 
                               fontSize: `${clueSize}px`, 
                               lineHeight: `${clueSize + 0.5}px`,
                               maxHeight: '48%',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              wordBreak: 'break-word',
+                              hyphens: 'auto'
                             }}
                           >
                             {horizontalClue}
                           </div>
-                          <div className="h-px w-full bg-purple-300/40" />
+                          <div className="h-px w-full bg-purple-400/50" />
                           <div 
-                            className="text-gray-900 font-medium uppercase overflow-hidden"
+                            className="text-gray-950 font-semibold uppercase overflow-hidden"
                             style={{ 
                               fontSize: `${clueSize}px`, 
                               lineHeight: `${clueSize + 0.5}px`,
                               maxHeight: '48%',
-                              textOverflow: 'ellipsis',
-                              whiteSpace: 'nowrap'
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical',
+                              wordBreak: 'break-word',
+                              hyphens: 'auto'
                             }}
                           >
                             {verticalClue}
@@ -107,9 +113,9 @@ export function CrosswordGrid({ grid, showSolution = false, className, tajenka }
                     const clueText = cell.clueDirection === 'horizontal' ? horizontalClue : verticalClue;
 
                     return (
-                      <div className="w-full h-full flex items-center justify-center p-px">
+                      <div className="w-full h-full flex items-center justify-center p-0.5">
                         <span 
-                          className="text-gray-900 font-medium uppercase text-center overflow-hidden leading-tight"
+                          className="text-gray-950 font-semibold uppercase overflow-hidden leading-tight text-center"
                           style={{ 
                             fontSize: `${clueSize}px`, 
                             lineHeight: `${clueSize + 0.5}px`,
@@ -117,7 +123,6 @@ export function CrosswordGrid({ grid, showSolution = false, className, tajenka }
                             display: '-webkit-box',
                             WebkitLineClamp: 4,
                             WebkitBoxOrient: 'vertical',
-                            textOverflow: 'ellipsis',
                             wordBreak: 'break-word',
                             hyphens: 'auto'
                           }}
@@ -129,24 +134,11 @@ export function CrosswordGrid({ grid, showSolution = false, className, tajenka }
                   })()
                 )}
                 
-                {/* BÍLÉ POLÍČKO - písmeno nebo pomůcka */}
+                {/* BÍLÉ POLÍČKO - písmeno (švédské křížovky = všechna písmena viditelná!) */}
                 {!cell.isBlack && (
                   <div className="w-full h-full flex items-center justify-center">
-                    {/* Pomůcka (zelené předvyplněné písmeno) */}
-                    {cell.pomucka && !showSolution && (
-                      <motion.span 
-                        className="font-bold text-green-600 uppercase"
-                        style={{ fontSize: `${pomuckaSize}px` }}
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: index * 0.005 }}
-                      >
-                        {cell.pomucka}
-                      </motion.span>
-                    )}
-                    
-                    {/* Písmeno (jen při zobrazení řešení) */}
-                    {showSolution && cell.letter && (
+                    {/* Písmeno - VŽDYCKY viditelné (švédská křížovka = hledačka!) */}
+                    {cell.letter && (
                       <motion.span 
                         className="font-bold text-gray-900 uppercase"
                         style={{ fontSize: `${fontSize}px` }}

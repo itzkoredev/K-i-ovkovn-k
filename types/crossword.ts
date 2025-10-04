@@ -1,4 +1,4 @@
-// Typy pro celou aplikaci
+﻿// Typy pro celou aplikaci
 
 export type Difficulty = 'lehka' | 'stredni' | 'tezka';
 
@@ -18,7 +18,7 @@ export type Theme =
   | 'divadlo'
   | 'umeni'
   | 'literatura'
-  | 'nabozenst vi'
+  | 'nabozenstvi'
   | 'politika'
   | 'ekonomie'
   | 'medicina'
@@ -39,7 +39,7 @@ export interface Word {
 
 export interface CrosswordSettings {
   difficulty: Difficulty;
-  themes: Theme[]; // Změněno z theme na themes (pole)
+  themes: Theme[]; // ZmÄ›nÄ›no z theme na themes (pole)
   showSolution: boolean;
   gridSize?: number;
   wordCount?: number;
@@ -49,12 +49,13 @@ export interface GridCell {
   letter: string;
   number?: number;
   isBlack: boolean;
-  isTajenka?: boolean; // Políčko je součástí tajenky
-  pomucka?: string; // Pomůcka - první písmeno předvyplněné (zelené)
-  clueText?: string; // Text zadání v černém políčku (pro švédskou křížovku)
-  clueDirection?: 'horizontal' | 'vertical' | 'both'; // Směr odpovědi (vpravo, dolů, nebo obojí)
-  clueTextHorizontal?: string; // Pro both - horní text (vodorovně vpravo)
-  clueTextVertical?: string; // Pro both - dolní text (svisle dolů)
+  isTajenka?: boolean; // PolĂ­ÄŤko je souÄŤĂˇstĂ­ tajenky
+  hasTajenkaCircle?: boolean; // LegendovĂˇ buĹ?ka mĂˇ krouĹľek pro tajenku
+  napoveda?: string; // PomĹŻcka - prvnĂ­ pĂ­smeno pĹ™edvyplnÄ›nĂ© (zelenĂ©)
+  clueText?: string; // Text zadĂˇnĂ­ v ÄŤernĂ©m polĂ­ÄŤku (pro ĹˇvĂ©dskou kĹ™Ă­Ĺľovku)
+  clueDirection?: 'horizontal' | 'vertical' | 'both'; // SmÄ›r odpovÄ›di (vpravo, dolĹŻ, nebo obojĂ­)
+  clueTextHorizontal?: string; // Pro both - hornĂ­ text (vodorovnÄ› vpravo)
+  clueTextVertical?: string; // Pro both - dolnĂ­ text (svisle dolĹŻ)
   x: number;
   y: number;
 }
@@ -72,7 +73,7 @@ export interface PlacedWord {
 export interface Crossword {
   grid: GridCell[][];
   words: PlacedWord[];
-  tajenka: string; // Heslo, které se objeví po vyluštění tajenky
+  tajenka: string; // Heslo, kterĂ© se objevĂ­ po vyluĹˇtÄ›nĂ­ tajenky
   settings: CrosswordSettings;
   createdAt: Date;
 }
@@ -87,3 +88,4 @@ export interface CrosswordClues {
   horizontal: CrosswordClue[];
   vertical: CrosswordClue[];
 }
+

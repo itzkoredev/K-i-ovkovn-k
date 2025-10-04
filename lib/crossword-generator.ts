@@ -1,12 +1,13 @@
-import type { Word, GridCell, PlacedWord, Crossword, CrosswordSettings } from '@/types/crossword';
+﻿import type { Word, GridCell, PlacedWord, Crossword, CrosswordSettings } from '@/types/crossword';
 import { getRandomWords } from '@/data/czech-words';
 
-// Generátor křížovky
+// Arroword / Swedish-style crossword generator
+// Clues are placed IN BLACK CELLS before each word, not in external lists
 export class CrosswordGenerator {
   private grid: GridCell[][];
   private placedWords: PlacedWord[] = [];
   private gridSize: number;
-  private wordNumber: number = 1;
+  private wordNumber = 1;
 
   constructor(gridSize: number) {
     this.gridSize = gridSize;
@@ -20,7 +21,7 @@ export class CrosswordGenerator {
       for (let x = 0; x < size; x++) {
         grid[y][x] = {
           letter: '',
-          isBlack: true,
+          isBlack: false,
           x,
           y,
         };
@@ -29,97 +30,124 @@ export class CrosswordGenerator {
     return grid;
   }
 
+  // Check if we can place a word WITH its clue cell
+  // For horizontal: need [clue cell][word letters...]
+  // For vertical: need [clue cell above][word letters below...]
   private canPlaceWord(
     word: string,
     x: number,
     y: number,
-    direction: 'horizontal' | 'vertical'
+    direction: 'horizontal' | 'vertical',
+    intersectionIndex: number = -1
   ): boolean {
-    if (direction === 'horizontal') {
-      // Kontrola, zda se slovo vejde do mřížky
-      if (x + word.length > this.gridSize) return false;
+    const upperWord = word.toUpperCase();
+    const len = upperWord.length;
 
-      // Kontrola kolizí
-      for (let i = 0; i < word.length; i++) {
+    if (direction === 'horizontal') {
+      // Need: clue cell at (x-1, y) + word from (x, y) to (x+len-1, y)
+      if (x <= 0 || x + len > this.gridSize || y < 0 || y >= this.gridSize) return false;
+
+      // Check clue cell position (unless this is at grid edge)
+      const clueCell = this.grid[y][x - 1];
+      if (clueCell.letter !== '' && !clueCell.isBlack) return false; // Clue cell must be empty or already black
+
+      // Check each letter position
+      for (let i = 0; i < len; i++) {
         const cell = this.grid[y][x + i];
         
-        // Pokud je buňka obsazená jiným písmenem
-        if (cell.letter !== '' && cell.letter !== word[i]) {
+        if (cell.letter !== '') {
+          // OK if this is intersection and letters match
+          if (i === intersectionIndex && cell.letter === upperWord[i]) {
+            continue;
+          }
           return false;
         }
-
-        // Kontrola vedlejších buněk (nesmí být písmo vedle, pokud není průsečík)
-        if (y > 0) {
-          const above = this.grid[y - 1][x + i];
-          if (above.letter !== '' && cell.letter === '') return false;
-        }
-        if (y < this.gridSize - 1) {
-          const below = this.grid[y + 1][x + i];
-          if (below.letter !== '' && cell.letter === '') return false;
+        
+        // Check cells above/below (except at intersection)
+        if (i !== intersectionIndex) {
+          if (y > 0 && this.grid[y - 1][x + i].letter !== '' && !this.grid[y - 1][x + i].isBlack) return false;
+          if (y < this.gridSize - 1 && this.grid[y + 1][x + i].letter !== '' && !this.grid[y + 1][x + i].isBlack) return false;
         }
       }
-
-      // Kontrola buněk před a za slovem
-      if (x > 0 && this.grid[y][x - 1].letter !== '') return false;
-      if (x + word.length < this.gridSize && this.grid[y][x + word.length].letter !== '') return false;
-
+      
+      // Check cell after word
+      if (x + len < this.gridSize && this.grid[y][x + len].letter !== '' && !this.grid[y][x + len].isBlack) return false;
+      
     } else {
-      // Vertical
-      if (y + word.length > this.gridSize) return false;
+      // Vertical: need clue cell at (x, y-1) + word from (x, y) to (x, y+len-1)
+      if (y <= 0 || y + len > this.gridSize || x < 0 || x >= this.gridSize) return false;
 
-      for (let i = 0; i < word.length; i++) {
+      // Check clue cell position
+      const clueCell = this.grid[y - 1][x];
+      if (clueCell.letter !== '' && !clueCell.isBlack) return false;
+
+      // Check each letter position
+      for (let i = 0; i < len; i++) {
         const cell = this.grid[y + i][x];
         
-        if (cell.letter !== '' && cell.letter !== word[i]) {
+        if (cell.letter !== '') {
+          if (i === intersectionIndex && cell.letter === upperWord[i]) {
+            continue;
+          }
           return false;
         }
-
-        // Kontrola vedlejších buněk
-        if (x > 0) {
-          const left = this.grid[y + i][x - 1];
-          if (left.letter !== '' && cell.letter === '') return false;
-        }
-        if (x < this.gridSize - 1) {
-          const right = this.grid[y + i][x + 1];
-          if (right.letter !== '' && cell.letter === '') return false;
+        
+        // Check cells left/right (except at intersection)
+        if (i !== intersectionIndex) {
+          if (x > 0 && this.grid[y + i][x - 1].letter !== '' && !this.grid[y + i][x - 1].isBlack) return false;
+          if (x < this.gridSize - 1 && this.grid[y + i][x + 1].letter !== '' && !this.grid[y + i][x + 1].isBlack) return false;
         }
       }
-
-      if (y > 0 && this.grid[y - 1][x].letter !== '') return false;
-      if (y + word.length < this.gridSize && this.grid[y + word.length][x].letter !== '') return false;
+      
+      // Check cell after word
+      if (y + len < this.gridSize && this.grid[y + len][x].letter !== '' && !this.grid[y + len][x].isBlack) return false;
     }
 
     return true;
   }
 
+  // Place word WITH clue cell (Arroword / Swedish style)
+  // Czech format: black cell with clue text + arrow → word follows
   private placeWord(
     word: Word,
     x: number,
     y: number,
     direction: 'horizontal' | 'vertical'
   ): void {
-    const wordStr = word.word;
-    
-    // Přiřazení čísla na začátek slova (pokud tam ještě není)
-    if (!this.grid[y][x].number) {
-      this.grid[y][x].number = this.wordNumber;
+    const wordStr = word.word.toUpperCase();
+    const len = wordStr.length;
+
+    // Place CLUE CELL before the word with arrow indicator
+    if (direction === 'horizontal') {
+      const clueCell = this.grid[y][x - 1];
+      clueCell.isBlack = true;
+      clueCell.letter = '';
+      
+      // Handle multiple directions (if cell already has vertical clue)
+      if (clueCell.clueDirection === 'vertical' || clueCell.clueTextVertical) {
+        clueCell.clueDirection = 'both';
+        clueCell.clueTextHorizontal = word.clue;
+      } else {
+        clueCell.clueDirection = 'horizontal';
+        clueCell.clueText = word.clue;
+      }
+    } else {
+      const clueCell = this.grid[y - 1][x];
+      clueCell.isBlack = true;
+      clueCell.letter = '';
+      
+      // Handle multiple directions (if cell already has horizontal clue)
+      if (clueCell.clueDirection === 'horizontal' || clueCell.clueTextHorizontal) {
+        clueCell.clueDirection = 'both';
+        clueCell.clueTextVertical = word.clue;
+      } else {
+        clueCell.clueDirection = 'vertical';
+        clueCell.clueText = word.clue;
+      }
     }
-    
-    const placedWord: PlacedWord = {
-      word: wordStr,
-      clue: word.clue,
-      number: this.grid[y][x].number!,
-      startX: x,
-      startY: y,
-      direction,
-      length: wordStr.length,
-    };
 
-    this.wordNumber++;
-    this.placedWords.push(placedWord);
-
-    // Umístění písmen do mřížky
-    for (let i = 0; i < wordStr.length; i++) {
+    // Place the word letters
+    for (let i = 0; i < len; i++) {
       if (direction === 'horizontal') {
         this.grid[y][x + i].letter = wordStr[i];
         this.grid[y][x + i].isBlack = false;
@@ -128,115 +156,173 @@ export class CrosswordGenerator {
         this.grid[y + i][x].isBlack = false;
       }
     }
+
+    // Record placed word
+    const placedWord: PlacedWord = {
+      word: wordStr,
+      clue: word.clue,
+      number: this.wordNumber,
+      startX: x,
+      startY: y,
+      direction,
+      length: len,
+    };
+
+    this.wordNumber++;
+    this.placedWords.push(placedWord);
   }
 
+  // Find possible intersection between a new word and existing words
   private findIntersection(
-    existingWord: PlacedWord,
-    newWord: string
-  ): { x: number; y: number; direction: 'horizontal' | 'vertical' } | null {
-    const existingWordStr = existingWord.word;
-    
-    // Zkusíme najít společné písmeno
-    for (let i = 0; i < existingWordStr.length; i++) {
-      for (let j = 0; j < newWord.length; j++) {
-        if (existingWordStr[i] === newWord[j]) {
-          // Máme shodu písmen
-          let x, y, direction: 'horizontal' | 'vertical';
-          
-          if (existingWord.direction === 'horizontal') {
-            // Nové slovo bude vertikální
-            direction = 'vertical';
-            x = existingWord.startX + i;
-            y = existingWord.startY - j;
-          } else {
-            // Nové slovo bude horizontální
-            direction = 'horizontal';
-            x = existingWord.startX - j;
-            y = existingWord.startY + i;
-          }
-          
-          // Kontrola, zda se vejde
-          if (x >= 0 && y >= 0 && this.canPlaceWord(newWord, x, y, direction)) {
-            return { x, y, direction };
-          }
+    newWord: string,
+    existingWord: PlacedWord
+  ): { x: number; y: number; newIndex: number; existingIndex: number } | null {
+    const newUpper = newWord.toUpperCase();
+    const existingUpper = existingWord.word;
+
+    // Try each letter of new word
+    for (let newIdx = 0; newIdx < newUpper.length; newIdx++) {
+      // Try each letter of existing word
+      for (let existingIdx = 0; existingIdx < existingUpper.length; existingIdx++) {
+        // Letters must match
+        if (newUpper[newIdx] !== existingUpper[existingIdx]) continue;
+
+        // Calculate intersection position
+        let x: number, y: number;
+        let newDirection: 'horizontal' | 'vertical';
+
+        if (existingWord.direction === 'horizontal') {
+          // Existing word is horizontal → new word must be vertical
+          newDirection = 'vertical';
+          x = existingWord.startX + existingIdx;
+          y = existingWord.startY - newIdx;
+        } else {
+          // Existing word is vertical → new word must be horizontal
+          newDirection = 'horizontal';
+          x = existingWord.startX - newIdx;
+          y = existingWord.startY + existingIdx;
+        }
+
+        // Check if this placement is valid
+        if (this.canPlaceWord(newWord, x, y, newDirection, newIdx)) {
+          return { x, y, newIndex: newIdx, existingIndex: existingIdx };
         }
       }
     }
-    
+
     return null;
   }
 
+  // Try to place word using intersection with existing words
   private tryPlaceWordWithIntersection(word: Word): boolean {
-    // Pokusíme se najít průsečík s existujícími slovy
-    for (const placedWord of this.placedWords) {
-      const intersection = this.findIntersection(placedWord, word.word);
+    if (this.placedWords.length === 0) return false;
+
+    // Shuffle placed words to try different intersections
+    const shuffledWords = [...this.placedWords].sort(() => Math.random() - 0.5);
+
+    for (const placedWord of shuffledWords) {
+      const intersection = this.findIntersection(word.word, placedWord);
+      
       if (intersection) {
-        this.placeWord(word, intersection.x, intersection.y, intersection.direction);
+        const newDirection = placedWord.direction === 'horizontal' ? 'vertical' : 'horizontal';
+        this.placeWord(word, intersection.x, intersection.y, newDirection);
         return true;
       }
     }
+
     return false;
   }
 
+  // Try to place word randomly in the grid
   private tryPlaceWordRandomly(word: Word): boolean {
+    const wordLen = word.word.length;
     const attempts = 100;
-    
+
     for (let attempt = 0; attempt < attempts; attempt++) {
-      const direction: 'horizontal' | 'vertical' = Math.random() > 0.5 ? 'horizontal' : 'vertical';
-      const x = Math.floor(Math.random() * this.gridSize);
-      const y = Math.floor(Math.random() * this.gridSize);
+      const direction = Math.random() < 0.5 ? 'horizontal' : 'vertical';
       
-      if (this.canPlaceWord(word.word, x, y, direction)) {
+      // Random position with space for clue cell
+      const x = direction === 'horizontal' 
+        ? Math.floor(Math.random() * (this.gridSize - wordLen - 1)) + 1 // +1 for clue cell space
+        : Math.floor(Math.random() * this.gridSize);
+      
+      const y = direction === 'vertical'
+        ? Math.floor(Math.random() * (this.gridSize - wordLen - 1)) + 1 // +1 for clue cell space
+        : Math.floor(Math.random() * this.gridSize);
+
+      if (this.canPlaceWord(word.word, x, y, direction, -1)) {
         this.placeWord(word, x, y, direction);
         return true;
       }
     }
-    
+
     return false;
   }
 
   public generate(settings: CrosswordSettings): Crossword {
-    // Získání slov podle nastavení
-    const words = getRandomWords(
-      settings.wordCount * 3, // Vezmeme víc slov, abychom měli z čeho vybírat
-      settings.difficulty,
-      settings.themes // Nyní pole témat
-    );
+    const targetCount = settings.wordCount ?? 20; // More words for dense grid
+    const words = getRandomWords(targetCount * 5, settings.difficulty, settings.themes);
 
     if (words.length === 0) {
-      throw new Error('Nenalezena žádná slova pro zadané kritérium');
+      throw new Error('Nepodařilo se najít slova pro zadané kriterium.');
     }
 
-    // Seřadíme slova podle délky (delší slova mají přednost)
-    words.sort((a, b) => b.length - a.length);
+    // Sort: mix of long and short words for better crossings
+    const longWords = words.filter(w => w.length >= 6).sort((a, b) => b.length - a.length);
+    const shortWords = words.filter(w => w.length < 6).sort((a, b) => b.length - a.length);
+    const sortedWords = [...longWords.slice(0, targetCount), ...shortWords.slice(0, targetCount)];
 
-    // Umístíme první slovo uprostřed mřížky horizontálně
-    const firstWord = words[0];
-    const startX = Math.floor((this.gridSize - firstWord.length) / 2);
-    const startY = Math.floor(this.gridSize / 2);
-    this.placeWord(firstWord, startX, startY, 'horizontal');
+    console.log(`🎯 Cíl: ${targetCount} slov, K dispozici: ${sortedWords.length} slov`);
 
-    // Pokusíme se umístit zbylá slova
+    // Place first word in the center (longer word preferred)
+    const firstWord = longWords[0] || sortedWords[0];
+    const startDirection = Math.random() > 0.5 ? 'horizontal' : 'vertical';
+    let startX: number, startY: number;
+    
+    if (startDirection === 'horizontal') {
+      startX = Math.floor((this.gridSize - firstWord.length) / 2) + 1; // +1 for clue cell
+      startY = Math.floor(this.gridSize / 2);
+    } else {
+      startX = Math.floor(this.gridSize / 2);
+      startY = Math.floor((this.gridSize - firstWord.length) / 2) + 1; // +1 for clue cell
+    }
+    
+    this.placeWord(firstWord, startX, startY, startDirection);
+    console.log(`✓ První slovo: "${firstWord.word}" (${startDirection}) na [${startX}, ${startY}]`);
+
+    // Try to place remaining words - prioritize intersections for dense grid
     let placedCount = 1;
-    for (let i = 1; i < words.length && placedCount < settings.wordCount; i++) {
-      const word = words[i];
-      
-      // Nejprve zkusíme najít průsečík
+    let intersectionCount = 0;
+    let randomCount = 0;
+    let failCount = 0;
+    
+    for (let i = 1; i < sortedWords.length && placedCount < targetCount; i++) {
+      const word = sortedWords[i];
+
+      // Try intersection first (better quality and density)
       if (this.tryPlaceWordWithIntersection(word)) {
         placedCount++;
-      } else if (placedCount < 5) {
-        // Pro první slova zkusíme náhodné umístění
-        if (this.tryPlaceWordRandomly(word)) {
-          placedCount++;
-        }
+        intersectionCount++;
+        console.log(`✓ Slovo ${placedCount}: "${word.word}" (průsečík)`);
+      } 
+      // Fallback to random only if we have very few words
+      else if (placedCount < 5 && this.tryPlaceWordRandomly(word)) {
+        placedCount++;
+        randomCount++;
+        console.log(`✓ Slovo ${placedCount}: "${word.word}" (náhodně)`);
+      } else {
+        failCount++;
       }
     }
 
-    // === GENEROVÁNÍ TAJENKY ===
-    const tajenkaWords = ['ČESKO', 'PRAHA', 'ZÁBAVA', 'ÚSPĚCH', 'RADOST', 'VÍTĚZ', 'ŠTĚSTÍ'];
+    console.log(`📊 Celkem umístěno: ${placedCount} slov (průsečíky: ${intersectionCount}, náhodně: ${randomCount}, selhalo: ${failCount})`);
+    console.log(`📝 Seznam slov: ${this.placedWords.map(w => w.word).join(', ')}`);
+
+    // Add tajenka (mystery word) - Czech crossword feature
+    const tajenkaWords = ['CESKO', 'PRAHA', 'ZABAVA', 'USPECH', 'RADOST', 'VITEZ', 'STESTI', 'SILA', 'DOMOV', 'KULTURA'];
     const tajenka = tajenkaWords[Math.floor(Math.random() * tajenkaWords.length)];
-    
-    // Najdeme všechny bílé buňky (s písmeny)
+
+    // Collect all white cells with letters
     const whiteCells: { x: number; y: number }[] = [];
     for (let y = 0; y < this.gridSize; y++) {
       for (let x = 0; x < this.gridSize; x++) {
@@ -245,19 +331,33 @@ export class CrosswordGenerator {
         }
       }
     }
-    
-    // Náhodně vybereme políčka pro tajenku
+
+    console.log(`📦 Celkem ${whiteCells.length} vyplněných buněk`);
+
+    // Shuffle and assign tajenka letters
     const shuffled = whiteCells.sort(() => Math.random() - 0.5);
     const tajenkaLength = Math.min(tajenka.length, shuffled.length);
-    
+
     for (let i = 0; i < tajenkaLength; i++) {
       const cell = shuffled[i];
       this.grid[cell.y][cell.x].isTajenka = true;
+      this.grid[cell.y][cell.x].letter = tajenka[i];
+      
+      // Přidej kroužek do legendové buňky před tímto písmenem
+      // Najdi legendovou buňku (černou) která je před touto buňkou
+      // Horizontální slovo: legenda je vlevo
+      if (cell.x > 0 && this.grid[cell.y][cell.x - 1].isBlack) {
+        this.grid[cell.y][cell.x - 1].hasTajenkaCircle = true;
+      }
+      // Vertikální slovo: legenda je nahoře
+      if (cell.y > 0 && this.grid[cell.y - 1][cell.x].isBlack) {
+        this.grid[cell.y - 1][cell.x].hasTajenkaCircle = true;
+      }
     }
-    
-    // === PŘIDÁNÍ NÁPOVĚD (10% políček dostane nápovědu) ===
-    const napovyCount = Math.floor(whiteCells.length * 0.1);
-    for (let i = 0; i < napovyCount; i++) {
+
+    // Add hints (pre-filled letters) - about 10% of cells
+    const hintCount = Math.floor(whiteCells.length * 0.1);
+    for (let i = 0; i < hintCount; i++) {
       const cell = shuffled[i + tajenkaLength];
       if (cell) {
         this.grid[cell.y][cell.x].napoveda = this.grid[cell.y][cell.x].letter;
@@ -282,8 +382,24 @@ export class CrosswordGenerator {
   }
 }
 
-// Hlavní funkce pro generování křížovky
 export function generateCrossword(settings: CrosswordSettings): Crossword {
-  const generator = new CrosswordGenerator(settings.gridSize);
-  return generator.generate(settings);
+  // VZOROVÝ ULTRA HUSTÝ PATTERN: 10x10 s krátkými slovy!
+  const size = 10; // FIXNÍ VELIKOST PRO VZOROVÝ PATTERN
+  const wordCount = 40; // HODNĚ slov pro hustý pattern (2-4 písmena)
+
+  const normalizedSettings: CrosswordSettings = {
+    ...settings,
+    gridSize: size,
+    wordCount,
+    themes: settings.themes?.length ? settings.themes : ['vsechny'],
+  };
+
+  const generator = new CrosswordGenerator(size);
+  return generator.generate(normalizedSettings);
 }
+
+
+
+
+
+
