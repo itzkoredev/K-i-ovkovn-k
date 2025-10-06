@@ -1,7 +1,7 @@
 import type { Word, Difficulty, Theme } from '@/types/crossword';
 import { megaDatabaze } from './mega-database';
-import { megaWordsExpansion } from './mega-generator'; // 🔥 TISÍCE SLOV!
-import { completeDictionary } from './mega-dictionary-complete'; // 📚 KOMPLETNÍ SLOVNÍK!
+import { megaWordsExpansion } from './mega-generator';
+// POZOR: FULL a UJC databáze se NELOADUJÍ tady - jen v word-database.ts!
 
 // Databáze českých slov s nápovědami + MEGA DATABÁZE (planetky, plemena psů, atd.)
 export const czechWords: Word[] = [
@@ -429,13 +429,11 @@ export const czechWords: Word[] = [
   ...megaDatabaze,
   
   // 🚀 MEGA EXPANSION - TISÍCE OBECNÝCH SLOV!
-  // Tělocvičné prvky, Pobídky, Předložky + běžná česká slova
   ...megaWordsExpansion,
   
-  // 📚 KOMPLETNÍ KŘÍŽOVKÁŘSKÝ SLOVNÍK - 700+ slov z 8 kategorií!
-  // SPZ, MPZ, Chemické značky, Řecká abeceda, Celní kódy, Solmizační slabiky, Lidové tance, Palmy
-  ...completeDictionary,
 ];
+
+console.log(`� CORE DATABÁZE načtena: ${czechWords.length} slov s nápovědami`);
 
 // Pomocné funkce pro práci s databází
 export function getWordsByDifficulty(difficulty: Difficulty): Word[] {

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,7 +19,7 @@ export default function HomePage() {
     try {
       setIsGenerating(true);
       setTimeout(() => {
-        console.log('🎯 Začínám generovat křížovku s nastaveními:', settings);
+        console.log('🚀 Začínám generovat křížovku s nastavením:', settings);
         const newCrossword = generateCrossword(settings);
         console.log('✅ Křížovka vygenerována:', newCrossword);
         setCrossword(newCrossword);
@@ -39,16 +39,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50">
-      {/* Header */}
-      <motion.header 
+      <motion.header
         className="border-b bg-white/80 backdrop-blur-md sticky top-0 z-10 shadow-sm"
         initial={{ y: -100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.5, ease: "easeOut" }}
+        transition={{ duration: 0.5, ease: 'easeOut' }}
       >
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center gap-3">
-            <motion.div 
+            <motion.div
               className="bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg p-2 shadow-md"
               whileHover={{ scale: 1.05, rotate: 5 }}
               whileTap={{ scale: 0.95 }}
@@ -57,7 +56,7 @@ export default function HomePage() {
             </motion.div>
             <div>
               <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Křižovkovník
+                Křížovkovník
               </h1>
               <p className="text-sm text-muted-foreground">
                 Generátor klasických českých křížovek
@@ -67,13 +66,11 @@ export default function HomePage() {
         </div>
       </motion.header>
 
-      {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
         <div className="grid lg:grid-cols-3 gap-8">
-          {/* Nastavení - levá strana */}
           <div className="lg:col-span-1">
             <SettingsForm onGenerate={handleGenerate} isGenerating={isGenerating} />
-            
+
             <AnimatePresence>
               {crossword && (
                 <motion.div
@@ -90,17 +87,17 @@ export default function HomePage() {
                       </CardDescription>
                     </CardHeader>
                     <CardContent className="space-y-3">
-                      <Button 
-                        className="w-full" 
+                      <Button
+                        className="w-full"
                         variant="outline"
                         onClick={handleExportPDF}
                       >
                         <Download className="mr-2 h-4 w-4" />
                         Stáhnout PDF (A4)
                       </Button>
-                      
-                      <Button 
-                        className="w-full" 
+
+                      <Button
+                        className="w-full"
                         variant="ghost"
                         onClick={() => handleGenerate(crossword.settings)}
                       >
@@ -108,8 +105,8 @@ export default function HomePage() {
                         Vygenerovat novou
                       </Button>
 
-                      <div className="pt-3 border-t text-xs text-muted-foreground">
-                        <p>📊 Počet slov: {crossword.words.length}</p>
+                      <div className="pt-3 border-t text-xs text-muted-foreground space-y-1">
+                        <p>🔢 Počet slov: {crossword.words.length}</p>
                         <p>📐 Velikost: {crossword.grid.length} × {crossword.grid.length}</p>
                       </div>
                     </CardContent>
@@ -119,7 +116,6 @@ export default function HomePage() {
             </AnimatePresence>
           </div>
 
-          {/* Náhled křížovky - pravá strana */}
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
               {isGenerating ? (
@@ -133,14 +129,8 @@ export default function HomePage() {
                   <Card className="h-[400px] flex items-center justify-center">
                     <CardContent className="text-center space-y-6">
                       <motion.div
-                        animate={{ 
-                          rotate: 360,
-                        }}
-                        transition={{ 
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "linear"
-                        }}
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
                       >
                         <Loader2 className="h-12 w-12 text-primary mx-auto" />
                       </motion.div>
@@ -149,36 +139,29 @@ export default function HomePage() {
                           Generuji křížovku...
                         </h3>
                         <p className="text-muted-foreground">
-                          Chvilku strpení, tvořím pro vás dokonalou křížovku 🎯
+                          Chvilku strpení, tvořím pro vás dokonalou křížovku ✨
                         </p>
                       </div>
                       <div className="flex gap-2 justify-center">
-                        <motion.div
-                          className="w-2 h-2 bg-primary rounded-full"
-                          animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-                          transition={{ duration: 1, repeat: Infinity, delay: 0 }}
-                        />
-                        <motion.div
-                          className="w-2 h-2 bg-primary rounded-full"
-                          animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-                          transition={{ duration: 1, repeat: Infinity, delay: 0.2 }}
-                        />
-                        <motion.div
-                          className="w-2 h-2 bg-primary rounded-full"
-                          animate={{ scale: [1, 1.5, 1], opacity: [1, 0.5, 1] }}
-                          transition={{ duration: 1, repeat: Infinity, delay: 0.4 }}
-                        />
+                        {[0, 1, 2].map(index => (
+                          <motion.div
+                            key={index}
+                            className="w-2 h-2 bg-primary rounded-full"
+                            animate={{ scale: [1, 1.4, 1], opacity: [1, 0.5, 1] }}
+                            transition={{ duration: 1, repeat: Infinity, delay: index * 0.2 }}
+                          />
+                        ))}
                       </div>
                     </CardContent>
                   </Card>
                 </motion.div>
               ) : crossword ? (
-                <motion.div 
+                <motion.div
                   key="crossword-content"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
-                  transition={{ duration: 0.4, ease: "easeOut" }}
+                  transition={{ duration: 0.4, ease: 'easeOut' }}
                   className="space-y-6"
                 >
                   <motion.div
@@ -190,11 +173,11 @@ export default function HomePage() {
                       <CardHeader>
                         <CardTitle>Křížovka</CardTitle>
                         <CardDescription>
-                          Švédská křížovka - zadání jsou přímo v černých políčkách
+                          Klasická křížovka – legendy jsou vypsané mimo mřížku
                         </CardDescription>
                       </CardHeader>
                       <CardContent className="flex flex-col items-center overflow-x-auto">
-                        <ClassicCrosswordGrid 
+                        <ClassicCrosswordGrid
                           grid={crossword.grid}
                           clues={crossword.words}
                           showSolution={false}
@@ -218,10 +201,10 @@ export default function HomePage() {
                           </CardDescription>
                         </CardHeader>
                         <CardContent className="flex flex-col items-center overflow-x-auto">
-                          <ClassicCrosswordGrid 
+                          <ClassicCrosswordGrid
                             grid={crossword.grid}
                             clues={crossword.words}
-                            showSolution={true}
+                            showSolution
                             tajenka={crossword.tajenka}
                           />
                         </CardContent>
@@ -239,28 +222,20 @@ export default function HomePage() {
                 >
                   <Card className="h-[400px] flex items-center justify-center">
                     <CardContent className="text-center space-y-4">
-                      <motion.div 
+                      <motion.div
                         className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center"
-                        animate={{ 
-                          scale: [1, 1.05, 1],
-                          rotate: [0, 5, -5, 0]
-                        }}
-                        transition={{ 
-                          duration: 3,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
+                        animate={{ scale: [1, 1.05, 1], rotate: [0, 5, -5, 0] }}
+                        transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
                       >
                         <Sparkles className="h-8 w-8 text-muted-foreground" />
                       </motion.div>
                       <div>
                         <h3 className="text-lg font-semibold mb-2">
-                          Vítejte v Křižovkovníku!
+                          Vítejte v Křížovkovníku!
                         </h3>
-                        <p className="text-muted-foreground max-w-md">
-                          Nastavte obtížnost, téma a další parametry vlevo a 
-                          klikněte na tlačítko pro vygenerování vaší vlastní 
-                          české křížovky.
+                        <p className="text-muted-foreground max-w-md mx-auto">
+                          Nastavte obtížnost, témata a další parametry vlevo a klikněte na tlačítko pro
+                          vygenerování vlastní české křížovky.
                         </p>
                       </div>
                     </CardContent>
@@ -272,12 +247,9 @@ export default function HomePage() {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="border-t mt-16 py-8 bg-white/50">
         <div className="container mx-auto px-4 text-center text-sm text-muted-foreground">
-          <p>
-            Křižovkovník © 2025 | Generátor klasických českých křížovek s exportem do PDF
-          </p>
+          <p>Křížovkovník © 2025 | Generátor klasických českých křížovek s exportem do PDF</p>
         </div>
       </footer>
     </div>
