@@ -1,6 +1,5 @@
 import { getWordDatabase } from './word-database';
-import { createClassicCzechPattern } from './classic-czech-pattern';
-import { isBlackCell, type GridPattern } from './symmetric-pattern';
+import { createEasyTajenkaPattern, isBlackCell, type GridPattern } from './symmetric-pattern';
 import { getRandomTajenka, type TajenkaPhrase } from '@/data/tajenky';
 import type { Crossword, CrosswordSettings, GridCell, PlacedWord, Word } from '@/types/crossword';
 
@@ -25,7 +24,7 @@ export class CrosswordBuilder {
   private readonly height: number;
   private readonly pattern: GridPattern;
   private readonly wordDB = getWordDatabase();
-  private grid: GridCell[][]; // Odstranit readonly pro retry
+  private readonly grid: GridCell[][];
 
   private usedWords = new Set<string>();
   private placedWords: PlacedWord[] = [];
@@ -35,147 +34,70 @@ export class CrosswordBuilder {
   private rankedWords: Word[] = [];
 
   constructor(private readonly settings: CrosswordSettings) {
-    this.pattern = createClassicCzechPattern(); // KLASICKÁ ČESKÁ KŘÍŽOVKA!
+    this.pattern = createEasyTajenkaPattern();
     this.width = this.pattern.width;
     this.height = this.pattern.height;
     this.grid = this.createEmptyGrid();
 
-    console.log(`\n🇨🇿 Generuji KLASICKOU ČESKOU křížovku ${this.width} × ${this.height}`);
+    console.log(`\n🔨 Generuji křížovku ${this.width} × ${this.height}`);
     console.log(`📊 Obtížnost: ${settings.difficulty}`);
     console.log(`🎨 Témata: ${(settings.themes ?? ['vsechny']).join(', ')}`);
-  }  public build(): Crossword {
-    // DEBUG: Zobrazit informace o pattern
-    console.log(`\n📐 Pattern info:`);
-    console.log(`   - Velikost: ${this.width} × ${this.height}`);
-    console.log(`   - Černá pole: ${this.pattern.blackCells.size}`);
-    console.log(`   - Tajenka řádek: ${this.pattern.tajenkiRows[0]}`);
-    
-    // KROK 1: Zkusit vygenerovat s různými tajenkami (až 3 pokusy)
+  }
+
+  public build(): Crossword {
+    // KROK 1: Vybrat cílovou tajenku
     const tajenkaLength = this.countTajenkaSlots();
     console.log(`🎯 Hledám tajenku pro ${tajenkaLength} písmen...`);
     
-    let bestCrossword: Crossword | null = null;
-    let bestWordCount = 0;
-    const MAX_TAJENKA_ATTEMPTS = 3;
+    this.tajenkaPhrase = getRandomTajenka(tajenkaLength, this.settings.difficulty);
+    if (!this.tajenkaPhrase) {
+      console.warn(`⚠️ Nenašel jsem tajenku pro ${tajenkaLength} písmen`);
+      this.tajenkaPhrase = getRandomTajenka(11, 'lehka') || undefined;
+    }
     
-    for (let tajenkaAttempt = 0; tajenkaAttempt < MAX_TAJENKA_ATTEMPTS; tajenkaAttempt++) {
-      // Reset pro nový pokus
-      this.grid = this.createEmptyGrid();
-      this.usedWords.clear();
-      this.placedWords = [];
-      this.wordNumber = 1;
-      
-      // Vybrat tajenku
-      const targetTajenka = getRandomTajenka(tajenkaLength, this.settings.difficulty);
-      if (!targetTajenka) {
-        console.warn(`⚠️ Nenašel jsem tajenku pro ${tajenkaLength} písmen`);
-        this.tajenkaPhrase = getRandomTajenka(11, 'lehka') || undefined;
-      } else {
-        this.tajenkaPhrase = targetTajenka;
-      }
-      
-      if (this.tajenkaPhrase) {
-        console.log(`\n🎲 Pokus ${tajenkaAttempt + 1}/${MAX_TAJENKA_ATTEMPTS}: "${this.tajenkaPhrase.display}"`);
-      }
+    if (this.tajenkaPhrase) {
+      console.log(`✨ Cílová tajenka: "${this.tajenkaPhrase.display}" (${this.tajenkaPhrase.clue})`);
+    }
 
-      // Rankovat slova (Pebble & Sand strategie)
-      this.rankedWords = this.rankWordsPebbleAndSand();
-      
-      console.log(`📚 Ranked words: ${this.rankedWords.length} slov celkem`);
-      console.log(`   - Délky: 3=${this.rankedWords.filter(w => w.length === 3).length}, 4=${this.rankedWords.filter(w => w.length === 4).length}, 5=${this.rankedWords.filter(w => w.length === 5).length}`);
+    // KROK 2: Rankovat slova (Pebble & Sand strategie)
+    this.rankedWords = this.rankWordsPebbleAndSand();
+    console.log(`📚 Seřazeno ${this.rankedWords.length} slov (pebbles first)`);
 
-      // 🎯 KROK 1: UMÍSTI TAJENKU NEJDŘÍV!
-      if (this.tajenkaPhrase) {
-        this.placeTajenkaFirst();
-        console.log(`✅ Tajenka umístěna: "${this.tajenkaPhrase.phrase}" (${this.tajenkaPhrase.length} písmen)`);
-      }
-
-      // 🎯 KROK 2: Vyplnit VŠECHNA slova (střídavě vertikální + horizontální)
-      let progress = true;
-      let guard = 0;
-      const MAX_ITERATIONS = 300; // Zvýšeno z 150
+    // KROK 3: Vyplnit křížovku s constraint pro tajenku
+    let progress = true;
+    let guard = 0;
+    const MAX_ITERATIONS = 150; // Zvýšeno pro constraint-based approach
+    
+    while (progress && guard < MAX_ITERATIONS) {
+      guard++;
       
-      while (progress && guard < MAX_ITERATIONS) {
-        guard++;
-        
-        // Střídej směry pro lepší vyplnění
-        const verticalPlaced = this.fillSlots('vertical');
-        const horizontalPlaced = this.fillSlots('horizontal');
-        
-        progress = verticalPlaced + horizontalPlaced > 0;
-        
-        if (guard % 10 === 0) {
-          console.log(`   🔄 Iterace ${guard}: V=${verticalPlaced}, H=${horizontalPlaced}`);
-        }
-      }
-
-      console.log(`   📊 Vyplněno ${this.placedWords.length} slov za ${guard} iterací`);
+      // DŮLEŽITÉ: Nejdřív vertical (sestaví tajenku), pak horizontal
+      const verticalPlaced = this.fillSlots('vertical');
+      const horizontalPlaced = this.fillSlots('horizontal');
+      progress = verticalPlaced + horizontalPlaced > 0;
       
-      // Zkontrolovat kvalitu tajenky
-      const tajenkaFilled = this.countTajenkaFilled();
-      const tajenkaQuality = tajenkaFilled / tajenkaLength;
-      console.log(`   🎯 Tajenka vyplněna: ${tajenkaFilled}/${tajenkaLength} (${Math.round(tajenkaQuality * 100)}%)`);
-      
-      // Pokud je tajenka >80% vyplněná, použijeme ji
-      if (tajenkaQuality >= 0.8 || this.placedWords.length > bestWordCount) {
-        this.markTajenka();
-        bestCrossword = {
-          grid: this.grid,
-          words: this.placedWords,
-          tajenka: this.extractTajenka(),
-          tajenkaClue: this.tajenkaPhrase?.clue,
-          settings: {
-            ...this.settings,
-            gridSize: this.width,
-            wordCount: this.placedWords.length
-          },
-          createdAt: new Date()
-        };
-        bestWordCount = this.placedWords.length;
-        
-        if (tajenkaQuality >= 0.9) {
-          console.log(`\n✅ Výborná tajenka nalezena! Ukončuji hledání.`);
-          break; // Máme výbornou tajenku, končíme
-        }
+      if (guard % 20 === 0) {
+        console.log(`🔄 Iterace ${guard}: ${this.placedWords.length} slov`);
       }
     }
 
-    if (!bestCrossword) {
-      // Fallback - použít poslední pokus
-      this.markTajenka();
-      bestCrossword = {
-        grid: this.grid,
-        words: this.placedWords,
-        tajenka: this.extractTajenka(),
-        tajenkaClue: this.tajenkaPhrase?.clue,
-        settings: {
-          ...this.settings,
-          gridSize: this.width,
-          wordCount: this.placedWords.length
-        },
-        createdAt: new Date()
-      };
-    }
+    console.log(`✅ Vyplněno ${this.placedWords.length} slov za ${guard} iterací`);
+    this.markTajenka();
 
-    return bestCrossword;
-  }
-  
-  /**
-   * Spočítat kolik písmen tajenky je vyplněno
-   */
-  private countTajenkaFilled(): number {
-    if (this.pattern.tajenkiRows.length === 0) return 0;
-    
-    const tajenkaRow = this.pattern.tajenkiRows[0];
-    let filled = 0;
-    
-    for (let x = 0; x < this.width; x++) {
-      if (!isBlackCell(this.pattern, x, tajenkaRow) && this.grid[tajenkaRow][x].letter) {
-        filled++;
-      }
-    }
-    
-    return filled;
+    const crossword: Crossword = {
+      grid: this.grid,
+      words: this.placedWords,
+      tajenka: this.extractTajenka(),
+      tajenkaClue: this.tajenkaPhrase?.clue,
+      settings: {
+        ...this.settings,
+        gridSize: this.width,
+        wordCount: this.placedWords.length
+      },
+      createdAt: new Date()
+    };
+
+    return crossword;
   }
 
   /**
@@ -275,28 +197,10 @@ export class CrosswordBuilder {
         
         return true;
       })
-      // PRIORITA: vertikály křížící tajenku (nejdřív), krátké sloty (3-4), pak ostatní s více vyplněnými písmeny
-      .sort((a, b) => {
-        const tajenkaRow = this.pattern.tajenkiRows[0];
-        const aCross = a.direction === 'vertical' && a.y <= tajenkaRow && a.y + a.length > tajenkaRow ? 1 : 0;
-        const bCross = b.direction === 'vertical' && b.y <= tajenkaRow && b.y + b.length > tajenkaRow ? 1 : 0;
-
-        if (aCross !== bCross) return bCross - aCross; // nejdřív ty, co kříží tajenku
-
-        // krátké sloty dříve (3,4,5...)
-        if (a.length !== b.length) return a.length - b.length;
-
-        // pak počet vyplněných písmen (více vyplněných = dřív)
-        return this.countFilledLetters(b.pattern) - this.countFilledLetters(a.pattern);
-      });
-
-    console.log(`\n🔍 FillSlots(${direction}): Našel jsem ${slots.length} slotů`);
-    if (slots.length > 0) {
-      console.log(`   - První slot: x=${slots[0].x}, y=${slots[0].y}, length=${slots[0].length}, pattern="${slots[0].pattern}"`);
-    }
+      .sort((a, b) => this.countFilledLetters(b.pattern) - this.countFilledLetters(a.pattern));
 
     let placed = 0;
-    const MAX_ATTEMPTS_PER_SLOT = 50; // Zvýšeno z 15 - více pokusů najít slovo
+    const MAX_ATTEMPTS_PER_SLOT = 15; // Více pokusů pro constraint-based
 
     for (const slot of slots) {
       let slotFilled = false;
@@ -321,22 +225,12 @@ export class CrosswordBuilder {
       
       for (let attempt = 0; attempt < MAX_ATTEMPTS_PER_SLOT && !slotFilled; attempt++) {
         const word = this.findWordForSlot(slot.length, slot.pattern, tajenkaConstraint);
-        if (!word) {
-          // KRITICKÉ: Pokud je tajenka constraint a nenašli jsme slovo, NESMÍME vyplnit náhradou!
-          if (tajenkaConstraint) {
-            console.log(`❌ Nenašel jsem slovo pro tajenka constraint '${tajenkaConstraint.letter}' na pozici ${tajenkaConstraint.position}`);
-          }
-          break; // Přeskočit tento slot
-        }
+        if (!word) break;
         
         if (this.canPlaceWord(word.word, slot)) {
           this.placeWord(word, slot);
           placed++;
           slotFilled = true;
-          
-          if (tajenkaConstraint) {
-            console.log(`✅ Umístěno slovo "${word.word}" s písmenem '${tajenkaConstraint.letter}' na pozici ${tajenkaConstraint.position}`);
-          }
         }
       }
     }
@@ -487,19 +381,6 @@ export class CrosswordBuilder {
     for (let i = 0; i < letters.length; i++) {
       const x = slot.direction === 'horizontal' ? slot.x + i : slot.x;
       const y = slot.direction === 'vertical' ? slot.y + i : slot.y;
-      const cell = this.grid[y][x];
-      
-      // ⚠️ DŮLEŽITÉ: Nepřepisuj písmena z tajenky!
-      // Tajenka už je umístěná, vertikální slova musí odpovídat
-      if (cell.isTajenka && cell.letter) {
-        // Zkontroluj, že písmeno odpovídá
-        if (cell.letter !== letters[i]) {
-          console.error(`❌ KONFLIKT: Snažím se umístit '${letters[i]}' ale tajenka má '${cell.letter}' na (${x},${y})`);
-        }
-        // Nech písmeno z tajenky, neměň ho!
-        continue;
-      }
-      
       this.grid[y][x].letter = letters[i];
     }
 
@@ -523,56 +404,6 @@ export class CrosswordBuilder {
 
   private countFilledLetters(pattern: string): number {
     return pattern.split('').filter(c => c !== '.').length;
-  }
-
-  /**
-   * 🎯 UMÍSTÍ TAJENKU DO ŽLUTÉHO ŘÁDKU (nejdřív!)
-   * 
-   * Tato funkce MUSÍ být volána PŘED fillSlots()!
-   * Umístí písmena tajenky do řádku 6, aby vertikální slova
-   * mohla použít constraint.
-   */
-  private placeTajenkaFirst(): void {
-    if (!this.tajenkaPhrase) {
-      console.warn('⚠️ Žádná tajenka k umístění!');
-      return;
-    }
-
-    const tajenkaRow = this.pattern.tajenkiRows[0];
-    const phrase = this.tajenkaPhrase.phrase;
-    
-    console.log(`\n🎯 Umisťuji tajenku do řádku ${tajenkaRow}: "${phrase}"`);
-    
-    let phraseIndex = 0;
-    
-    // Projdi všechna pole v řádku tajenky
-    for (let x = 0; x < this.width; x++) {
-      const cell = this.grid[tajenkaRow][x];
-      
-      // Přeskočit černá pole
-      if (cell.isBlack) {
-        console.log(`   ⬛ (${x},${tajenkaRow}) = černé pole (přeskočeno)`);
-        continue;
-      }
-      
-      // Umístit další písmeno z tajenky
-      if (phraseIndex < phrase.length) {
-        const letter = phrase[phraseIndex];
-        cell.letter = letter;
-        cell.isTajenka = true; // Označit jako tajenka
-        
-        console.log(`   ✅ (${x},${tajenkaRow}) = '${letter}' (index ${phraseIndex})`);
-        phraseIndex++;
-      } else {
-        console.warn(`   ⚠️ (${x},${tajenkaRow}) = prázdné (tajenka už doplněná)`);
-      }
-    }
-    
-    if (phraseIndex !== phrase.length) {
-      console.error(`❌ CHYBA: Umístěno ${phraseIndex}/${phrase.length} písmen tajenky!`);
-    } else {
-      console.log(`✅ Tajenka kompletně umístěna: ${phraseIndex} písmen`);
-    }
   }
 
   private markTajenka(): void {

@@ -1,15 +1,35 @@
 /**
- * Jednoduchá databáze slov – pracuje pouze s pečlivě ošetřeným core seznamem.
+ * Databáze slov s podporou MEGA DATABÁZE + GENERÁTORU pro bohatší slovník.
  */
 
 import type { Word } from '@/types/crossword';
 import { czechWords } from '@/data/czech-words';
+import { megaDatabaze } from '@/data/mega-database';
+import { megaWordsExpansion } from '@/data/mega-generator';
 
 export class WordDatabase {
-  private coreWords: Word[] = czechWords;
+  private coreWords: Word[] = [];
   private wordsByLength: Map<number, Word[]> = new Map();
 
   constructor() {
+    // 🚀 KOMBINUJ: základní + mega databázi + generované slova
+    this.coreWords = [
+      ...czechWords,
+      ...megaDatabaze,
+      ...megaWordsExpansion // NOVÉ! Tisíce vygenerovaných slov
+    ];
+    
+    // Odstraň duplicity
+    const uniqueWords = new Map<string, Word>();
+    for (const word of this.coreWords) {
+      const key = word.word.toUpperCase();
+      if (!uniqueWords.has(key)) {
+        uniqueWords.set(key, word);
+      }
+    }
+    this.coreWords = Array.from(uniqueWords.values());
+    
+    // Indexuj podle délky
     for (const word of this.coreWords) {
       const len = word.word.length;
       if (!this.wordsByLength.has(len)) {
@@ -18,7 +38,10 @@ export class WordDatabase {
       this.wordsByLength.get(len)!.push(word);
     }
 
-    console.log(`📚 WordDatabase inicializována: ${this.coreWords.length} slov v jádru`);
+    console.log(`📚 WordDatabase inicializována: ${this.coreWords.length} slov celkem`);
+    console.log(`   - Základní slova: ${czechWords.length}`);
+    console.log(`   - Mega databáze: ${megaDatabaze.length}`);
+    console.log(`   - Generované slova: ${megaWordsExpansion.length}`);
   }
 
   getWordsByLength(length: number): Word[] {
@@ -28,6 +51,10 @@ export class WordDatabase {
   getRandomWords(count: number): Word[] {
     const shuffled = [...this.coreWords].sort(() => Math.random() - 0.5);
     return shuffled.slice(0, Math.min(count, shuffled.length));
+  }
+
+  getAllWords(): Word[] {
+    return this.coreWords;
   }
 
   getStats() {

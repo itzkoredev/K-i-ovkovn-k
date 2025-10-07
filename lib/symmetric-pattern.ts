@@ -138,3 +138,102 @@ export function createSparsePattern(): GridPattern {
 export function createBalancedPattern(): GridPattern {
   return createRealisticPattern();
 }
+
+/**
+ * JEDNODUCHÝ PATTERN PRO KLASICKÉ TAJENKY
+ * 
+ * Optimalizováno pro:
+ * - Průchozí žlutý řádek (tajenka bez černých buněk)
+ * - Pravidelné vertikální slova křížící tajenku
+ * - Symetrické rozložení
+ * - Jednoduché vyplňování
+ */
+export function createEasyTajenkaPattern(): GridPattern {
+  const width = 13;
+  const height = 13;
+  const tajenkaRow = 6; // prostřední řádek
+  const blackCells = new Set<string>();
+
+  // PATTERN: Jednoduchý layout s vertikálními sloty
+  // Row 0-5: Horní část (vertikální slova)
+  // Row 6: TAJENKA (žlutý řádek - BEZ černých buněk!)
+  // Row 7-12: Dolní část (zrcadlo)
+
+  const layout = [
+    '...#...#...#.', // řádek 0
+    '...#...#...#.', // řádek 1
+    '.#.#.#.#.#.#.', // řádek 2
+    '...#...#...#.', // řádek 3
+    '...#...#...#.', // řádek 4
+    '.#.......#.#.', // řádek 5
+    '.............', // řádek 6 - TAJENKA (plně průchozí!)
+    '.#.#.......#.', // řádek 7 (mirror)
+    '...#...#...#.', // řádek 8
+    '...#...#...#.', // řádek 9
+    '.#.#.#.#.#.#.', // řádek 10
+    '...#...#...#.', // řádek 11
+    '...#...#...#.'  // řádek 12
+  ];
+
+  // Vybudovat pattern z layoutu
+  layout.forEach((row, y) => {
+    for (let x = 0; x < width; x++) {
+      if (row[x] === '#') {
+        blackCells.add(`${x},${y}`);
+      }
+    }
+  });
+
+  return {
+    width,
+    height,
+    blackCells,
+    tajenkiRows: [tajenkaRow]
+  };
+}
+
+/**
+ * Ještě přívětivější pattern pro tajenky:
+ * - Řádek tajenky je plně průchozí
+ * - Každé pole tajenky je součástí KRÁTKÉHO vertikálního slova (typicky délka 3)
+ *   díky šachovnicovému rozmístění černých buněk v řádcích 5 a 7 a zábranám v 4 a 8
+ * - Výrazně zvyšuje šanci, že pro každé písmeno tajenky najdeme slovo i v malé databázi
+ */
+export function createTajenkaFriendlyPattern(): GridPattern {
+  const width = 13;
+  const height = 13;
+  const tajenkaRow = 6; // prostřední řádek
+  const blackCells = new Set<string>();
+
+  // Šachovnice okolo tajenky, aby vertikální slova přes tajenku měla délku 3
+  const layout = [
+    '...#...#...#.', // 0
+    '..#...#...#..', // 1
+    '.#.#.#.#.#.#.', // 2
+    '##.#.###.#.##', // 3 – více bloků, zkracuje vertikály shora
+    '.#.#.#.#.#.#.', // 4 – šachovnice nad tajenkou
+    '#.#.#.#.#.#.#', // 5 – šachovnice nad tajenkou (inverzní)
+    '.............', // 6 – TAJENKA
+    '.#.#.#.#.#.#.', // 7 – šachovnice pod tajenkou (inverzní k 5)
+    '#.#.#.#.#.#.#', // 8 – šachovnice pod tajenkou
+    '##.#.###.#.##', // 9 – více bloků, zkracuje vertikály zespodu
+    '.#.#.#.#.#.#.', // 10
+    '..#...#...#..', // 11
+    '...#...#...#.'  // 12
+  ];
+
+  layout.forEach((row, y) => {
+    for (let x = 0; x < width; x++) {
+      if (row[x] === '#') {
+        blackCells.add(`${x},${y}`);
+      }
+    }
+  });
+
+  return {
+    width,
+    height,
+    blackCells,
+    tajenkiRows: [tajenkaRow]
+  };
+}
